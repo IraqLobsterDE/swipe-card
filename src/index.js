@@ -45,12 +45,12 @@ class SwipeCard extends LitElement {
   }
 
   static get styles() {
-    return css`
+    return css\`
       :host {
         --swiper-theme-color: var(--primary-color);
       }
-      ${unsafeCSS(swiperStyle)}
-    `;
+      \${unsafeCSS(swiperStyle)}
+    \`;
   }
 
   setConfig(config) {
@@ -106,30 +106,36 @@ class SwipeCard extends LitElement {
       return html``;
     }
 
-    return html`
+    return html\`
       <div
         class="swiper-container"
-        dir="${this._hass.translationMetadata.translations[
+        dir="\${this._hass.translationMetadata.translations[
           this._hass.selectedLanguage || this._hass.language
         ].isRTL || false
           ? "rtl"
           : "ltr"}"
       >
-        <div class="swiper-wrapper">${this._cards}</div>
-        ${"pagination" in this._parameters
-          ? html` <div class="swiper-pagination"></div> `
-          : ""}
-        ${"navigation" in this._parameters
-          ? html`
-              <div class="swiper-button-next"></div>
-              <div class="swiper-button-prev"></div>
-            `
-          : ""}
-        ${"scrollbar" in this._parameters
-          ? html` <div class="swiper-scrollbar"></div> `
-          : ""}
+        <div class="swiper-wrapper">\${this._cards}</div>
+        \${
+          "pagination" in this._parameters
+            ? html\` <div class="swiper-pagination"></div> \`
+            : ""
+        }
+        \${
+          "navigation" in this._parameters
+            ? html\`
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+              \`
+            : ""
+        }
+        \${
+          "scrollbar" in this._parameters
+            ? html\` <div class="swiper-scrollbar"></div> \`
+            : ""
+        }
       </div>
-    `;
+    \`;
   }
 
   async _initialLoad() {
@@ -173,6 +179,21 @@ class SwipeCard extends LitElement {
       this.shadowRoot.querySelector(".swiper-container"),
       this._parameters
     );
+
+    // 🔧 Patch: disable swipe while interacting with sliders
+    const container = this.shadowRoot.querySelector(".swiper-container");
+    const disableSwipe = (e) => {
+      if (e.target.closest('input[type="range"]')) {
+        this.swiper.allowTouchMove = false;
+      }
+    };
+    const enableSwipe = () => {
+      this.swiper.allowTouchMove = true;
+    };
+    container.addEventListener("touchstart", disableSwipe, { passive: true });
+    container.addEventListener("touchend", enableSwipe);
+    container.addEventListener("pointerdown", disableSwipe);
+    container.addEventListener("pointerup", enableSwipe);
 
     if (this._config.reset_after) {
       this.swiper
@@ -276,7 +297,7 @@ class SwipeCard extends LitElement {
 
 customElements.define("swipe-card", SwipeCard);
 console.info(
-  "%c   SWIPE-CARD  \n%c Version 5.0.0 ",
+  "%c   SWIPE-CARD  \n%c Version 5.0.0 Patched with slider lock",
   "color: orange; font-weight: bold; background: black",
   "color: white; font-weight: bold; background: dimgray"
 );
