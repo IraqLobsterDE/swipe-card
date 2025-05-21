@@ -43,12 +43,12 @@ class SwipeCard extends LitElement {
   }
 
   static get styles() {
-    return css\`
+    return css`
       :host {
         --swiper-theme-color: var(--primary-color);
       }
-      \${unsafeCSS(swiperStyle)}
-    \`;
+      ${unsafeCSS(swiperStyle)}
+    `;
   }
 
   setConfig(config) {
