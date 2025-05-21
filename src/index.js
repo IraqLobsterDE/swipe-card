@@ -1,3 +1,4 @@
+
 import { LitElement, html, css, unsafeCSS } from "lit";
 
 import Swiper from "swiper/swiper-bundle.esm.js";
@@ -38,10 +39,7 @@ class SwipeCard extends LitElement {
   }
 
   shouldUpdate(changedProps) {
-    if (changedProps.has("_config") || changedProps.has("_cards")) {
-      return true;
-    }
-    return false;
+    return changedProps.has("_config") || changedProps.has("_cards");
   }
 
   static get styles() {
@@ -72,11 +70,7 @@ class SwipeCard extends LitElement {
 
   set hass(hass) {
     this._hass = hass;
-
-    if (!this._cards) {
-      return;
-    }
-
+    if (!this._cards) return;
     this._cards.forEach((element) => {
       element.hass = this._hass;
     });
@@ -116,71 +110,39 @@ class SwipeCard extends LitElement {
           : "ltr"}"
       >
         <div class="swiper-wrapper">\${this._cards}</div>
-        \${
-          "pagination" in this._parameters
-            ? html\` <div class="swiper-pagination"></div> \`
-            : ""
-        }
-        \${
-          "navigation" in this._parameters
-            ? html\`
-                <div class="swiper-button-next"></div>
-                <div class="swiper-button-prev"></div>
-              \`
-            : ""
-        }
-        \${
-          "scrollbar" in this._parameters
-            ? html\` <div class="swiper-scrollbar"></div> \`
-            : ""
-        }
+        \${"pagination" in this._parameters ? html\`<div class="swiper-pagination"></div>\` : ""}
+        \${"navigation" in this._parameters ? html\`<div class="swiper-button-next"></div><div class="swiper-button-prev"></div>\` : ""}
+        \${"scrollbar" in this._parameters ? html\`<div class="swiper-scrollbar"></div>\` : ""}
       </div>
     \`;
   }
 
   async _initialLoad() {
     this._loaded = true;
-
     await this.updateComplete;
 
     if ("pagination" in this._parameters) {
-      if (this._parameters.pagination === null) {
-        this._parameters.pagination = {};
-      }
-      this._parameters.pagination.el =
-        this.shadowRoot.querySelector(".swiper-pagination");
+      this._parameters.pagination = this._parameters.pagination || {};
+      this._parameters.pagination.el = this.shadowRoot.querySelector(".swiper-pagination");
     }
 
     if ("navigation" in this._parameters) {
-      if (this._parameters.navigation === null) {
-        this._parameters.navigation = {};
-      }
-      this._parameters.navigation.nextEl = this.shadowRoot.querySelector(
-        ".swiper-button-next"
-      );
-      this._parameters.navigation.prevEl = this.shadowRoot.querySelector(
-        ".swiper-button-prev"
-      );
+      this._parameters.navigation = this._parameters.navigation || {};
+      this._parameters.navigation.nextEl = this.shadowRoot.querySelector(".swiper-button-next");
+      this._parameters.navigation.prevEl = this.shadowRoot.querySelector(".swiper-button-prev");
     }
 
     if ("scrollbar" in this._parameters) {
-      if (this._parameters.scrollbar === null) {
-        this._parameters.scrollbar = {};
-      }
-      this._parameters.scrollbar.el =
-        this.shadowRoot.querySelector(".swiper-scrollbar");
+      this._parameters.scrollbar = this._parameters.scrollbar || {};
+      this._parameters.scrollbar.el = this.shadowRoot.querySelector(".swiper-scrollbar");
     }
 
     if ("start_card" in this._config) {
       this._parameters.initialSlide = this._config.start_card - 1;
     }
 
-    this.swiper = new Swiper(
-      this.shadowRoot.querySelector(".swiper-container"),
-      this._parameters
-    );
+    this.swiper = new Swiper(this.shadowRoot.querySelector(".swiper-container"), this._parameters);
 
-    // 🔧 Patch: disable swipe while interacting with sliders
     const container = this.shadowRoot.querySelector(".swiper-container");
     const disableSwipe = (e) => {
       if (e.target.closest('input[type="range"]')) {
@@ -197,15 +159,9 @@ class SwipeCard extends LitElement {
 
     if (this._config.reset_after) {
       this.swiper
-        .on("slideChange", () => {
-          this._setResetTimer();
-        })
-        .on("click", () => {
-          this._setResetTimer();
-        })
-        .on("touchEnd", () => {
-          this._setResetTimer();
-        });
+        .on("slideChange", () => this._setResetTimer())
+        .on("click", () => this._setResetTimer())
+        .on("touchEnd", () => this._setResetTimer());
     }
   }
 
@@ -219,19 +175,10 @@ class SwipeCard extends LitElement {
   }
 
   async _createCards() {
-    this._cardPromises = Promise.all(
-      this._config.cards.map((config) => this._createCardElement(config))
-    );
-
+    this._cardPromises = Promise.all(this._config.cards.map((config) => this._createCardElement(config)));
     this._cards = await this._cardPromises;
-    if (this._ro) {
-      this._cards.forEach((card) => {
-        this._ro.observe(card);
-      });
-    }
-    if (this.swiper) {
-      this.swiper.update();
-    }
+    if (this._ro) this._cards.forEach((card) => this._ro.observe(card));
+    if (this.swiper) this.swiper.update();
   }
 
   async _createCardElement(cardConfig) {
@@ -243,16 +190,10 @@ class SwipeCard extends LitElement {
     if (this._hass) {
       element.hass = this._hass;
     }
-    element.addEventListener(
-      "ll-rebuild",
-      (ev) => {
-        ev.stopPropagation();
-        this._rebuildCard(element, cardConfig);
-      },
-      {
-        once: true,
-      }
-    );
+    element.addEventListener("ll-rebuild", (ev) => {
+      ev.stopPropagation();
+      this._rebuildCard(element, cardConfig);
+    }, { once: true });
     return element;
   }
 
@@ -268,9 +209,7 @@ class SwipeCard extends LitElement {
     if (cardElToReplace.parentElement) {
       cardElToReplace.parentElement.replaceChild(newCardEl, cardElToReplace);
     }
-    this._cards = this._cards.map((curCardEl) =>
-      curCardEl === cardElToReplace ? newCardEl : curCardEl
-    );
+    this._cards = this._cards.map((curCardEl) => curCardEl === cardElToReplace ? newCardEl : curCardEl);
     this._ro.unobserve(cardElToReplace);
     this._ro.observe(newCardEl);
     this.swiper.update();
@@ -278,19 +217,9 @@ class SwipeCard extends LitElement {
 
   async getCardSize() {
     await this._cardPromises;
-
-    if (!this._cards) {
-      return 0;
-    }
-
-    const promises = [];
-
-    for (const element of this._cards) {
-      promises.push(computeCardSize(element));
-    }
-
+    if (!this._cards) return 0;
+    const promises = this._cards.map((element) => computeCardSize(element));
     const results = await Promise.all(promises);
-
     return Math.max(...results);
   }
 }
