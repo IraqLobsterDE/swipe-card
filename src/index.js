@@ -226,7 +226,7 @@ class SwipeCard extends LitElement {
 
 customElements.define("swipe-card", SwipeCard);
 console.info(
-  "%c   SWIPE-CARD  \n%c Version 5.0.0 Patched with slider lock",
+  "%c   SWIPE-CARD  \\n%c Version 5.0.0 Patched with slider lock",
   "color: orange; font-weight: bold; background: black",
   "color: white; font-weight: bold; background: dimgray"
 );
